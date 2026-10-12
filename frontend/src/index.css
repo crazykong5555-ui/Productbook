@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+button, input, textarea { font: inherit; }

@@ -1,0 +1,24 @@
+backend/
+│
+├── app/
+│   ├── __init__.py          ✅ create_app()
+│   ├── extensions.py
+│   ├── config.py
+│
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│
+│   ├── schemas/            🔥 NUEVO
+│   │   ├── user_schema.py
+│   │   ├── productbook_schema.py
+│   │   ├── url_schema.py
+│   │   └── agenda_schema.py
+│
+│   ├── middleware/         🔥 NUEVO
+│   │   ├── auth_middleware.py
+│   │   └── error_handler.py
+│
+├── run.py
+├── requirements.txt
+└── .env
