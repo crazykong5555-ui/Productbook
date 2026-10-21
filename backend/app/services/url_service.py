@@ -3,50 +3,69 @@ from app.extensions import db
 
 
 def get_urls_by_productbook(pb_id):
-    return Url.query.filter_by(productbook_id=pb_id).all()
+    return Url.query.filter_by(productbook_id=pb_id).order_by(Url.id.desc()).all()
 
 
-def create_url(data):
-    item = Url(
-        producto=data["producto"],
-        imagen=data.get("imagen"),
-        descripcion=data.get("descripcion"),
-        valor=data.get("valor"),
-        url=data.get("url"),
-        productbook_id=data["productbook_id"]
-    )
-
-    db.session.add(item)
-    db.session.commit()
-
-    return item
+def get_url_by_id(item_id, pb_id):
+    return Url.query.filter_by(id=item_id, productbook_id=pb_id).first()
 
 
-def delete_url(item_id):
-    item = Url.query.get(item_id)
+def create_url(data, pb_id):
+    try:
+        raw_qty = data.get("cantidad", 1)
+        try:
+            qty = max(0, int(raw_qty))
+        except (TypeError, ValueError):
+            qty = 1
 
-    if not item:
-        return None
+        item = Url(
+            producto=data["producto"].strip(),
+            imagen=data.get("imagen", "") or "",
+            descripcion=data.get("descripcion", "") or "",
+            valor=data.get("valor"),
+            url=data.get("url", "") or "",
+            cantidad=qty,
+            productbook_id=pb_id,
+        )
+        db.session.add(item)
+        db.session.commit()
+        return item, None
+    except Exception as err:
+        db.session.rollback()
+        return None, str(err)
 
-    db.session.delete(item)
-    db.session.commit()
 
-    return item
+def delete_url(item_id, pb_id):
+    try:
+        item = Url.query.filter_by(id=item_id, productbook_id=pb_id).first()
+        if not item:
+            return None, "Producto no encontrado"
+
+        db.session.delete(item)
+        db.session.commit()
+        return item, None
+    except Exception as err:
+        db.session.rollback()
+        return None, str(err)
 
 
-def update_url(item_id, data):
-    item = Url.query.get(item_id)
+def update_url(item_id, data, pb_id):
+    try:
+        item = Url.query.filter_by(id=item_id, productbook_id=pb_id).first()
+        if not item:
+            return None, "Producto no encontrado"
 
-    if not item:
-        return None
+        for key, value in data.items():
+            if hasattr(item, key):
+                if key == "cantidad":
+                    try:
+                        value = max(0, int(value))
+                    except (TypeError, ValueError):
+                        value = item.cantidad
+                setattr(item, key, value)
 
-    item.producto = data.get("producto", item.producto)
-    item.imagen = data.get("imagen", item.imagen)
-    item.descripcion = data.get("descripcion", item.descripcion)
-    item.valor = data.get("valor", item.valor)
-    item.url = data.get("url", item.url)
-
-    db.session.commit()
-
-    return item
-# backend/app/services/url_service.py
+        db.session.commit()
+        return item, None
+    except Exception as err:
+        db.session.rollback()
+        return None, str(err)

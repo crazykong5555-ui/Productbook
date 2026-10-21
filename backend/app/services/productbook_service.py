@@ -1,37 +1,36 @@
 from ..models.productbook import ProductBook
 from ..extensions import db
-from ..services.productbook_service import (
-    get_productbooks_by_user,
-    create_productbook,
-    delete_productbook
-)
 
 
 def get_productbooks_by_user(user_id):
-    return ProductBook.query.filter_by(user_id=user_id).all()
+    return ProductBook.query.filter_by(user_id=int(user_id)).all()
+
+
+def get_productbook_by_id(pb_id, user_id):
+    pb = ProductBook.query.filter_by(id=pb_id, user_id=int(user_id)).first()
+    if not pb:
+        return None, "ProductBook no encontrado"
+    return pb, None
 
 
 def create_productbook(data, user_id):
     pb = ProductBook(
-        nombre=data["nombre"],
-        descripcion=data.get("descripcion", ""),
-        user_id=user_id
+        nombre=data["nombre"].strip(),
+        descripcion=data.get("descripcion", "").strip() if data.get("descripcion") else "",
+        user_id=int(user_id),
     )
 
     db.session.add(pb)
     db.session.commit()
 
-    return pb
+    return pb, None
 
 
 def delete_productbook(pb_id, user_id):
-    pb = ProductBook.query.get(pb_id)
+    pb = ProductBook.query.filter_by(id=pb_id, user_id=int(user_id)).first()
 
     if not pb:
-        return None, "No existe"
-
-    if pb.user_id != user_id:
-        return None, "No autorizado"
+        return None, "ProductBook no encontrado"
 
     db.session.delete(pb)
     db.session.commit()
@@ -40,18 +39,16 @@ def delete_productbook(pb_id, user_id):
 
 
 def update_productbook(pb_id, data, user_id):
-    pb = ProductBook.query.get(pb_id)
+    pb = ProductBook.query.filter_by(id=pb_id, user_id=int(user_id)).first()
 
     if not pb:
-        return None, "No existe"
+        return None, "ProductBook no encontrado"
 
-    if pb.user_id != user_id:
-        return None, "No autorizado"
-
-    pb.nombre = data.get("nombre", pb.nombre)
-    pb.descripcion = data.get("descripcion", pb.descripcion)
+    if "nombre" in data and data["nombre"]:
+        pb.nombre = data["nombre"].strip()
+    if "descripcion" in data:
+        pb.descripcion = (data["descripcion"] or "").strip()
 
     db.session.commit()
 
     return pb, None
-# backend/app/services/productbook_service.py

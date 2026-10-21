@@ -6,6 +6,7 @@ from app.schemas.user_schema import validate_user
 
 auth_bp = Blueprint("auth", __name__)
 
+
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.get_json(silent=True)
@@ -30,9 +31,15 @@ def login():
     if not isinstance(data, dict):
         data = {}
 
-    user = get_user_by_email(data.get("email"))
+    email = data.get("email")
+    password = data.get("password")
 
-    if not verify_password(user, data.get("password")):
+    if not email or not password:
+        return jsonify({"error": "Email y contraseña requeridos"}), 400
+
+    user = get_user_by_email(email)
+
+    if not verify_password(user, password):
         return jsonify({"error": "Credenciales inválidas"}), 401
 
     token = create_access_token(identity=str(user.id))
@@ -41,5 +48,3 @@ def login():
         "token": token,
         "user": user.to_dict()
     })
-
-# backend/app/routes/auth_routes.py

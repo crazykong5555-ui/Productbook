@@ -33,7 +33,9 @@ export default function Agenda() {
       setEditingId(null);
       await loadContacts();
     } catch (requestError) {
-      setError(requestError.response?.data?.error || "No se pudo guardar el contacto.");
+      const serverMsg = requestError.response?.data?.error;
+      const networkMsg = requestError.message;
+      setError(serverMsg || (networkMsg ? `Error: ${networkMsg}` : "No se pudo guardar el contacto."));
     } finally {
       setBusy(false);
     }

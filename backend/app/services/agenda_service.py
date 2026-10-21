@@ -3,46 +3,58 @@ from app.extensions import db
 
 
 def get_agenda_by_productbook(pb_id):
-    return Agenda.query.filter_by(productbook_id=pb_id).all()
+    return Agenda.query.filter_by(productbook_id=pb_id).order_by(Agenda.id.desc()).all()
 
 
-def create_agenda_item(data):
-    item = Agenda(
-        nombre=data["nombre"],
-        telefono=data.get("telefono"),
-        email=data.get("email"),
-        productbook_id=data["productbook_id"]
-    )
-
-    db.session.add(item)
-    db.session.commit()
-
-    return item
+def get_agenda_item_by_id(item_id, pb_id):
+    return Agenda.query.filter_by(id=item_id, productbook_id=pb_id).first()
 
 
-def delete_agenda_item(item_id):
-    item = Agenda.query.get(item_id)
+def create_agenda_item(data, pb_id):
+    try:
+        item = Agenda(
+            nombre=data["nombre"].strip(),
+            telefono=(data.get("telefono") or "").strip(),
+            email=(data.get("email") or "").strip(),
+            productbook_id=pb_id,
+        )
+        db.session.add(item)
+        db.session.commit()
+        return item, None
+    except Exception as err:
+        db.session.rollback()
+        return None, str(err)
 
-    if not item:
-        return None
 
-    db.session.delete(item)
-    db.session.commit()
+def delete_agenda_item(item_id, pb_id):
+    try:
+        item = Agenda.query.filter_by(id=item_id, productbook_id=pb_id).first()
+        if not item:
+            return None, "Contacto no encontrado"
 
-    return item
+        db.session.delete(item)
+        db.session.commit()
+        return item, None
+    except Exception as err:
+        db.session.rollback()
+        return None, str(err)
 
 
-def update_agenda_item(item_id, data):
-    item = Agenda.query.get(item_id)
+def update_agenda_item(item_id, data, pb_id):
+    try:
+        item = Agenda.query.filter_by(id=item_id, productbook_id=pb_id).first()
+        if not item:
+            return None, "Contacto no encontrado"
 
-    if not item:
-        return None
+        if "nombre" in data and data["nombre"]:
+            item.nombre = data["nombre"].strip()
+        if "telefono" in data:
+            item.telefono = (data.get("telefono") or "").strip()
+        if "email" in data:
+            item.email = (data.get("email") or "").strip()
 
-    item.nombre = data.get("nombre", item.nombre)
-    item.telefono = data.get("telefono", item.telefono)
-    item.email = data.get("email", item.email)
-
-    db.session.commit()
-
-    return item
-# backend/app/services/agenda_service.py
+        db.session.commit()
+        return item, None
+    except Exception as err:
+        db.session.rollback()
+        return None, str(err)

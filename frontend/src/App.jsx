@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Agenda from "./pages/Agenda";
 import ProductBook from "./pages/ProductBook";
+import Inventario from "./pages/Inventario";
 import { AuthContext } from "./context/AuthContext";
 
 function ProtectedRoute({ children }) {
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
           <Route path="/productbook" element={<ProtectedRoute><ProductBook /></ProtectedRoute>} />
+          <Route path="/inventario" element={<ProtectedRoute><Inventario /></ProtectedRoute>} />
           <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
           <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
           <Route path="*" element={<Navigate to={user ? "/" : "/login"} replace />} />

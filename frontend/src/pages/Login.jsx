@@ -1,5 +1,5 @@
-import { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import API from "../services/api";
 import { AuthContext } from "../context/AuthContext";
 
@@ -7,12 +7,21 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { setUser } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (searchParams.get("expired") === "true") {
+      setInfo("Tu sesión ha expirado o las credenciales cambiaron. Por favor, inicia sesión nuevamente.");
+    }
+  }, [searchParams]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
     setError("");
+    setInfo("");
     try {
       const { data } = await API.post("/auth/login", { email, password });
       localStorage.setItem("token", data.token);
@@ -29,6 +38,7 @@ export default function Login() {
       <form onSubmit={handleLogin} className="w-full rounded-2xl bg-white p-8 text-slate-900 shadow-xl">
         <h1 className="mb-2 text-2xl font-bold">Iniciar sesión</h1>
         <p className="mb-6 text-slate-500">Accede a tu espacio de ProductBook.</p>
+        {info && <p role="status" className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">{info}</p>}
         {error && <p role="alert" className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
         <label className="mb-1 block text-sm font-medium" htmlFor="login-email">Correo electrónico</label>
         <input id="login-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required className="mb-4 w-full rounded-lg border border-slate-300 p-3" />
